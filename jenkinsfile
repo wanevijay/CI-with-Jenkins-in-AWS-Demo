@@ -50,7 +50,7 @@ pipeline {
 		                "files": [
 		                  {
 		                    "pattern": "libs-snapshot-local/*.war",
-		                    "target": "/home/ecekarthim/download/"
+		                    "target": "/home/warnevijay/download/"
 		                  }
 		                ]
 		            }'''
