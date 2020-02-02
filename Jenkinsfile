@@ -4,7 +4,7 @@ pipeline {
 
         stage ('Exec Maven') {
             steps {
-   sh "mvn package"
+   sh "mvn package sonar:sonar"
 }
 
   }
