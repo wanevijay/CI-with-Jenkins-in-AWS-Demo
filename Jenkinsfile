@@ -1,6 +1,7 @@
 pipeline {
     agent any
     stages {
+
         stage ('Exec Maven') {
             steps {
                 rtMavenRun (
@@ -10,6 +11,16 @@ pipeline {
                 )
             }
         }
-		
-		}
+        stage('Sonarqube') {
+                environment {
+                    scannerHome = tool 'sonarqube'
+                }
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                sh "${scannerHome}/bin/sonar-scanner"
+                }
+            }
+        }
+
+}
 }
