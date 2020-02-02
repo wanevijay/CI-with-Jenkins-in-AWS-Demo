@@ -9,6 +9,10 @@ pipeline {
 
   }
 
-   
+        stage ("status to slack'){
+               steps{
+                slackSend channel: 'jenkins-test', color: 'good', message: 'Message from Jenkins Pipeline'   
+               }
+               }
 }
 }
