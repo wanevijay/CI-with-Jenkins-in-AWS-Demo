@@ -1,0 +1,81 @@
+pipeline {
+    agent any
+    stages {
+        stage('Build') {
+            steps {
+                git credentialsId: '0afb4f4e-b3da-4c3c-a2d8-3bea7fb21973', url: 'https://github.com/ecekarthim/CI-with-Jenkins-in-AWS-Demo/'
+               
+            }
+        }
+        stage ('Exec Maven') {
+            steps {
+                rtMavenRun (
+                    tool: 'MAVEN_HOME', // Tool name from Jenkins configuration
+                    pom: 'pom.xml',
+                    goals: 'clean install',
+                )
+            }
+        }
+        stage('Sonarqube') {
+                environment {
+                    scannerHome = tool 'sonarqube'
+                }
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                sh "${scannerHome}/bin/sonar-scanner"
+                }
+            }
+        }
+        stage ('Publish to JFrog') {
+            steps {
+                rtUpload (
+                    serverId: "Devops-Jfrog",
+                    spec: '''{
+                          "files": [
+                            {
+                              "pattern": "**/*.war",
+                              "target": "libs-snapshot-local/"
+                            }
+                          ]
+                    }'''
+                    
+                )
+            }
+        }
+        stage ('Download from JFrog') {
+            steps {
+		        rtDownload (
+		            serverId: "Devops-Jfrog",
+		            spec: '''{
+		                "files": [
+		                  {
+		                    "pattern": "libs-snapshot-local/*.war",
+		                    "target": "/home/ecekarthim/download/"
+		                  }
+		                ]
+		            }'''
+	    	    )
+            }
+        }
+        
+        stage('Deploy approval') {
+            steps {            
+            input "Deploy to prod?"
+            }
+        }
+        
+        stage ('Deploy to Tomcat') {
+            steps {            
+                deploy adapters: [tomcat8(credentialsId: 'manager', path: '', url: 'http://34.93.224.236:8080')], contextPath: 'devops', war: '**/*.war'
+            }
+        }
+        
+        stage ('Status to slack') {
+            steps {
+                slackSend channel: 'devops-test11', message: 'Job Details'
+            }
+        }
+        
+        
+}
+}
